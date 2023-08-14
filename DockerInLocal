@@ -1,0 +1,81 @@
+Steps to run docker images on local playpen:
+ 
+Download and install Docker Desktop.
+(https://docs.docker.com/desktop/install/windows-install/)
+If you don't have an account in docker hub (https://hub.docker.com/), it is advisable to create one with your own email address (preferably your personal account instead of office one).
+2. Once the docker is installed and up on your local machine, try login in to docker hub using the account created above.
+>> docker login
+3.Checkout the project from bitbucket and using windows power shell, change directory to folder containing Dockerfile.
+4. Build the docker image issuing docker build command.
+>> docker build . -t  imageName:Tag
+5. Check the image using docker images command.
+>> docker images
+6. Now create a container by executing docker run command.
+>> docker run -rm -p 8080:8080  --name container1 -it imageName:Tag
+>> docker run --env-file my-env.txt alpine:3 env
+7. All running containers can be inspected by issuing the following command.
+>> docker container ls
+>> docker inspect <<containerid>>
+8. In case of mapping a file content on host with that of container use -- volume
+   Volume is an important concept if you want to persist information on your host machine, without which you may lose data when you restart a container.
+    Similarly if there is need to pass environment variable from as file use -- env-file
+      >> docker run --rm -p 3000:3000 -it --env-file ./.env --volume //c/Project/data:/app/data  imageName:Tag
+9. Playpen - Container application connecting to postgres database on a localhost (non-container based)
+> just add following to end of file in pg_hba.conf
+host     all             all             0.0.0.0/0                 md5
+> update application-dev.yml
+url: jdbc:postgresql://ipaddresofyourlaptop:5432/billingmaster 
+
+10. Running redis on docker
+     > docker network create -d bridge redisnet
+     > docker run --rm -d -p 6379:6379 --name myredis --network redisnet redis
+     > docker container inspect <containerid>
+Any application running on a host machine can use redis at localhost. For applications running on docker start it on connecting the redis network and ensure redis host is on IP address obtained by inspecting the redis container.
+
+11. Running postgres on docker on playpen with persistent volume
+> docker run --rm -d -p 5432:5432 --name postgres --network redisnet -e POSTGRES_PASSWORD=postgres -e PGDATA=/var/lib/postgresql/data/pgdata 	--volume //c/Work/data:/var/lib/postgresql/data postgres
+
+12. Using redis running on container on local. In the app config file host for redis should be IP address that was obtained using container inspect command for redis container.
+      > docker run --rm -p 3000:3000 -it --env-file ./.env --volume //c/Project/data:/app/data --network redisnet whatsapp:v4
+
+13. Localstack : To test AWS functionality on your local development setup.
+https://medium.com/swlh/how-to-mock-aws-services-in-local-development-e231852e8a0f
+
+https://medium.com/@anchan.ashwithabg95/using-localstack-sns-and-sqs-for-devbox-testing-fa09de5e3bbb
+
+https://www.hyperlearn.in/blog/posts/using-localstack-emulate-aws-s3-and-sqs-with-node/
+
+
+ docker run -it --rm  --name localstack -p 4566:4566 -p 4510-4559:4510-4559 --network redisnet  localstack/localstack
+    
+
+
+14. Connecting to stage database using VPN
+docker run -it --rm  --name myapp -p 4566:4566 --network host myapp
+Note- Database property set as localhost in the application
+
+15. Java on docker reference: https://towardsaws.com/deploy-spring-boot-application-to-aws-ec2-using-docker-f359e7ad2026
+
+16. Adding host entry in docker container:
+https://codeopolis.com/posts/add-a-host-entry-to-a-docker-container/
+
+Install AWS client tool & create a dummy profile by executing following script on command prompt.
+
+aws configure set aws_access_key_id "dummy" --profile test-profile
+aws configure set aws_secret_access_key "dummy" --profile test-profile
+aws configure set region "ap-south-1" --profile test-profile
+aws configure set output "table" --profile test-profile
+=================================
+1. Create SNS topic
+aws --endpoint-url=http://localhost:4566 sns create-topic --name order-creation-events --region ap-south-1 --profile test-profile --output table | cat
+
+2. Create SQS queue
+aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name dummy-queue --profile test-profile --region ap-south-1 --output table | cat
+
+3. To view the messages that is sent to the SNS topic, lets subscribe SQS queue to the topic.
+aws --endpoint-url=http://localhost:4566 sns subscribe --topic-arn   arn:aws:sns:ap-south-1:000000000000:order-creation-events --profile test-profile  --protocol sqs --notification-endpoint http://localstack:4566/000000000000/dummy-queue --output table | cat
+
+
+Permission Denied error on ubuntu
+Execute sudo aa-remove-unknown
+Once it is successfully executed, docker stop command will work.
