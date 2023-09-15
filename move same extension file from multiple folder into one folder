@@ -1,0 +1,35 @@
+import os
+import shutil
+
+# Define the source folders where you want to search for files
+source_folders = [
+    "/path/to/source_folder1",
+    "/path/to/source_folder2",
+    # Add more source folders as needed
+]
+
+# Define the destination folder where you want to save the files
+destination_folder = "/path/to/destination_folder"
+
+# Specify the file extension you want to search for (e.g., '.txt', '.jpg', '.pdf')
+target_extension = ".txt"  # Change this to your desired extension
+
+# Create the destination folder if it doesn't exist
+if not os.path.exists(destination_folder):
+    os.makedirs(destination_folder)
+
+# Function to search for files with the specified extension and copy them to the destination folder
+def copy_files_with_extension(source_folder, destination_folder, extension):
+    for root, _, files in os.walk(source_folder):
+        for file in files:
+            if file.endswith(extension):
+                source_path = os.path.join(root, file)
+                destination_path = os.path.join(destination_folder, file)
+                shutil.copy2(source_path, destination_path)
+                print(f"Copied: {source_path} to {destination_path}")
+
+# Loop through the source folders and copy files with the target extension
+for folder in source_folders:
+    copy_files_with_extension(folder, destination_folder, target_extension)
+
+print("File copy process completed.")
