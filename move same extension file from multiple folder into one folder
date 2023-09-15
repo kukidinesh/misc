@@ -3,16 +3,15 @@ import shutil
 
 # Define the source folders where you want to search for files
 source_folders = [
-    "/path/to/source_folder1",
-    "/path/to/source_folder2",
+    "[Ðc] - AP Dhillon - All in One - [DholCutz-DIGITAL-FLAC-2023]",
     # Add more source folders as needed
 ]
 
 # Define the destination folder where you want to save the files
-destination_folder = "/path/to/destination_folder"
+destination_folder = "songs"
 
 # Specify the file extension you want to search for (e.g., '.txt', '.jpg', '.pdf')
-target_extension = ".txt"  # Change this to your desired extension
+target_extension = ".flac"  # Change this to your desired extension
 
 # Create the destination folder if it doesn't exist
 if not os.path.exists(destination_folder):
